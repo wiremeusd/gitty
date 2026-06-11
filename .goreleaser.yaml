@@ -1,0 +1,34 @@
+version: 2
+project_name: gitty
+
+builds:
+  - main: ./cmd/gitty
+    binary: gitty
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{ .Version }}
+      - -X github.com/wiremeusd/gitty/internal/auth.builtinClientID={{ if index .Env "GITTY_CLIENT_ID" }}{{ .Env.GITTY_CLIENT_ID }}{{ end }}
+
+archives:
+  - formats: [tar.gz]
+
+brews:
+  - name: gitty
+    directory: Formula
+    repository:
+      owner: wiremeusd
+      name: homebrew-tap
+      # the token field accepts only {{ .Env.VAR }} — conditional templates break publishing
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+    homepage: https://github.com/wiremeusd/gitty
+    description: "Interactive GitHub repo cloning from the terminal"
+    license: MIT
+    test: |
+      system "#{bin}/gitty --version"
