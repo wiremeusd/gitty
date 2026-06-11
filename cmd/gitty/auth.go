@@ -46,7 +46,7 @@ func newAuthLoginCmd() *cobra.Command {
 				return err
 			}
 			if err := auth.SaveToken(login, token); err != nil {
-				return fmt.Errorf("failed to save token to Keychain: %w", err)
+				return fmt.Errorf("failed to save token to the system keyring: %w", err)
 			}
 			path, err := config.DefaultPath()
 			if err != nil {
@@ -94,7 +94,7 @@ func newAuthListCmd() *cobra.Command {
 func newAuthLogoutCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "logout <account>",
-		Short: "Remove an account: token from Keychain and bindings from config",
+		Short: "Remove an account: token from the system keyring and bindings from config",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
@@ -107,7 +107,7 @@ func newAuthLogoutCmd() *cobra.Command {
 				return err
 			}
 			if err := auth.DeleteToken(name); err != nil {
-				fmt.Printf("Warning: token not found in Keychain (%v)\n", err)
+				fmt.Printf("Warning: token not found in the system keyring (%v)\n", err)
 			}
 			cfg.RemoveAccount(name)
 			if err := cfg.Save(path); err != nil {

@@ -1,4 +1,4 @@
-// Package auth implements the GitHub OAuth Device Flow and token storage in Keychain.
+// Package auth implements the GitHub OAuth Device Flow and token storage in the system keyring.
 package auth
 
 import (
