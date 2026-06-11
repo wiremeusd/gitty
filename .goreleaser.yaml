@@ -8,6 +8,7 @@ builds:
       - CGO_ENABLED=0
     goos:
       - darwin
+      - linux
     goarch:
       - amd64
       - arm64
@@ -18,10 +19,13 @@ builds:
 
 archives:
   - formats: [tar.gz]
+    # no version in the name — keeps releases/latest/download/ URLs stable
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
 
-brews:
+# casks are macOS-only; Linux users install from the release tarball (see README)
+homebrew_casks:
   - name: gitty
-    directory: Formula
+    directory: Casks
     repository:
       owner: wiremeusd
       name: homebrew-tap
@@ -30,5 +34,10 @@ brews:
     homepage: https://github.com/wiremeusd/gitty
     description: "Interactive GitHub repo cloning from the terminal"
     license: MIT
-    test: |
-      system "#{bin}/gitty --version"
+    # release binaries are not signed/notarized — strip the quarantine flag on install
+    hooks:
+      post:
+        install: |
+          if system_command("/usr/bin/xattr", args: ["-h"]).exit_status == 0
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/gitty"]
+          end

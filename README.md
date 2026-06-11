@@ -21,10 +21,20 @@ $ gitty
 ## Install
 
 ```sh
-brew install wiremeusd/tap/gitty
+brew install --cask wiremeusd/tap/gitty
 ```
 
-macOS only for now (tokens are stored in the system Keychain).
+Works on macOS and Linux (casks need Homebrew ≥ 4.5 on Linux). No Homebrew? Grab a binary:
+
+```sh
+# linux_amd64; also: linux_arm64, darwin_arm64, darwin_amd64
+curl -L https://github.com/wiremeusd/gitty/releases/latest/download/gitty_linux_amd64.tar.gz | tar xz
+sudo install gitty /usr/local/bin/
+```
+
+Tokens are stored in the system keyring: the Keychain on macOS, the Secret Service (GNOME Keyring or KWallet) on Linux.
+
+> **Linux note:** a Secret Service daemon must be running. Desktop environments (GNOME, KDE) have one out of the box; on headless systems install and unlock `gnome-keyring` first.
 
 ## Quick start
 
@@ -72,7 +82,7 @@ gitty clones over HTTPS and registers itself as the [git credential helper](http
 ## Security
 
 - Authentication uses GitHub's OAuth Device Flow — you never copy-paste tokens.
-- Tokens live in the macOS Keychain, not in files. The config file (`~/.config/gitty/config.toml`) contains only account names and folder bindings.
+- Tokens live in the system keyring (macOS Keychain / Linux Secret Service), not in files. The config file (`~/.config/gitty/config.toml`) contains only account names and folder bindings.
 - The token scope is `repo` (required to list and clone private repositories).
 
 ## Development
@@ -84,7 +94,7 @@ go test ./...
 GITTY_CLIENT_ID=<your-oauth-app-client-id> go run ./cmd/gitty auth login
 ```
 
-Releases are built by GoReleaser on tag push (see `.goreleaser.yaml`); the Homebrew formula in [`wiremeusd/homebrew-tap`](https://github.com/wiremeusd/homebrew-tap) is updated automatically.
+Releases are built by GoReleaser on tag push (see `.goreleaser.yaml`); the Homebrew cask in [`wiremeusd/homebrew-tap`](https://github.com/wiremeusd/homebrew-tap) is updated automatically.
 
 ## License
 
