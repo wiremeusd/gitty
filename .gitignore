@@ -1,5 +1,6 @@
 /gitty
 /dist/
+/.playwright-mcp/
 
 # local notes, not for publication
 /docs/

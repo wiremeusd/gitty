@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>gitty — Clone GitHub Repos from Your Terminal</title>
+<meta name="description" content="gitty is a macOS CLI: fuzzy-search your GitHub repositories, hit Enter, and they're cloned. Multiple accounts handled automatically.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%232e2a24'/%3E%3Ctext x='8' y='24' font-family='monospace' font-size='22' fill='%23f7c96c'%3E%24%3C/text%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #2e2a24;
+    --bg-code: #23201b;
+    --border: #4a4338;
+    --text: #ffffff;
+    --text-dim: #bdb6a9;
+    --amber: #f7c96c;
+    --amber-dark: #e2a843;
+    --link: #f7c96c;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  code, pre {
+    font-family: ui-monospace, "SF Mono", Monaco, Menlo, Consolas, monospace;
+    font-size: 14px;
+  }
+
+  a { color: var(--link); }
+  a:hover { color: #ffd79a; }
+
+  .container { max-width: 980px; margin: 0 auto; padding: 0 20px; }
+
+  /* ---------- header / hero ---------- */
+  .hero {
+    text-align: center;
+    padding: 48px 0 8px;
+  }
+  .hero h1 {
+    font-size: 48px;
+    font-weight: 800;
+  }
+  .hero h1 a { color: var(--amber); text-decoration: none; }
+  .hero .tagline {
+    font-weight: 600;
+    margin-top: 4px;
+  }
+  .hero .platform {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-top: 6px;
+  }
+
+  /* ---------- sections ---------- */
+  section { padding: 28px 0 8px; }
+
+  h2 {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--amber);
+    margin-bottom: 18px;
+  }
+
+  h3 {
+    font-size: 18px;
+    color: var(--amber);
+    margin: 22px 0 8px;
+  }
+
+  p { margin-bottom: 12px; }
+  p.center { text-align: center; }
+  .dim { color: var(--text-dim); }
+
+  /* ---------- code blocks ---------- */
+  pre {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 16px;
+    overflow-x: auto;
+    margin: 12px 0;
+    line-height: 1.7;
+  }
+  pre .c { color: #999988; font-style: italic; }
+  pre .out { color: var(--text-dim); }
+  pre .hl { color: var(--amber); }
+  p > code, li > code, td code {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  /* install command — like brew.sh's big centered one */
+  .install-box {
+    max-width: 620px;
+    margin: 16px auto 4px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 12px 12px 16px;
+  }
+  .install-box .prompt-icon {
+    flex: none;
+    color: var(--amber-dark);
+    font-family: ui-monospace, "SF Mono", Monaco, Menlo, Consolas, monospace;
+    font-size: 15px;
+    font-weight: 700;
+    user-select: none;
+  }
+  .install-box code {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 15px;
+    white-space: nowrap;
+    overflow-x: auto;
+  }
+  .copy-btn {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--text-dim);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 6px 12px;
+    cursor: pointer;
+  }
+  .copy-btn:hover { color: var(--amber); border-color: var(--amber-dark); }
+  .copy-btn.copied { color: var(--bg-code); background: var(--amber); border-color: var(--amber); }
+  .copy-btn svg { width: 14px; height: 14px; }
+
+  /* ---------- two-column rows (text | code), like brew.sh ---------- */
+  .row {
+    display: flex;
+    gap: 28px;
+    align-items: center;
+    margin: 26px 0;
+  }
+  .row .text { flex: 1; }
+  .row .code { flex: 1.2; min-width: 0; }
+  .row .code pre { margin: 0; }
+  @media (max-width: 700px) {
+    .row { flex-direction: column; align-items: stretch; gap: 8px; }
+    table { display: block; overflow-x: auto; }
+    td.desc { min-width: 280px; }
+  }
+
+  /* ---------- commands table ---------- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+  }
+  th, td {
+    text-align: left;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    font-size: 15px;
+  }
+  th { background: var(--bg-code); color: var(--amber); }
+  td.desc { color: var(--text-dim); }
+
+  /* ---------- lists ---------- */
+  ul { margin: 12px 0 12px 24px; }
+  li { margin-bottom: 8px; }
+  li strong { color: var(--amber); font-weight: 600; }
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 36px auto;
+    max-width: 980px;
+  }
+
+  /* ---------- footer ---------- */
+  footer {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 13px;
+    padding: 8px 0 40px;
+  }
+</style>
+</head>
+<body>
+
+<div class="hero container">
+  <h1><a href="/">🗂 gitty</a></h1>
+  <p class="tagline">Clone Your GitHub Repos from the Terminal</p>
+  <p class="platform">No browsing github.com for clone URLs. No juggling SSH keys between accounts.</p>
+</div>
+
+<section class="container" id="install">
+  <h2>⚡ Install gitty</h2>
+  <div class="install-box">
+    <span class="prompt-icon">❯</span>
+    <code id="install-cmd">brew install --cask wiremeusd/tap/gitty</code>
+    <button class="copy-btn" id="copy-install" title="Copy to clipboard">
+      <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>
+      Copy
+    </button>
+  </div>
+  <p class="center dim">Works on macOS and Linux. No Homebrew? Grab a binary from <a href="https://github.com/wiremeusd/gitty/releases/latest">Releases</a>.</p>
+</section>
+
+<hr>
+
+<section class="container" id="what">
+  <h2>🔍 What Does gitty Do?</h2>
+
+  <div class="row">
+    <div class="text">
+      <p>Run <code>gitty</code>, fuzzy-search the list of your repositories, hit Enter, and it's cloned into the current directory.</p>
+      <p class="dim">The list includes your own repos, repos you collaborate on, and organization repos. It's cached on disk, so it appears instantly and refreshes in the background.</p>
+    </div>
+    <div class="code">
+<pre>$ gitty
+
+  gitty · wiremeusd
+
+  <span class="hl">❯ wiremeusd/api-gateway</span>      <span class="out">★ 12 · Go</span>
+    wiremeusd/payment-api      <span class="out">★ 3  · TypeScript</span>
+    wiremeusd/dotfiles         <span class="out">★ 1  · Shell</span>
+
+  <span class="out">↑↓ select · / search · Enter clone · Esc quit</span>
+
+<span class="hl">✔ Cloned into ./api-gateway</span></pre>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="text">
+      <p>Getting started takes two commands. Signing in opens GitHub's device flow — no manual token handling.</p>
+    </div>
+    <div class="code">
+<pre><span class="c"># 1. Sign in</span>
+$ gitty auth login
+
+<span class="c"># 2. Browse &amp; clone</span>
+$ cd ~/projects
+$ gitty</pre>
+    </div>
+  </div>
+</section>
+
+<hr>
+
+<section class="container" id="accounts">
+  <h2>👥 Multiple Accounts</h2>
+
+  <div class="row">
+    <div class="text">
+      <p>Bind a directory to an account once — the binding covers all subdirectories.</p>
+      <p class="dim">The deepest binding wins, so <code>~/work/clients</code> can point to a third account. No <code>.ssh/config</code> host aliases, no per-repo identity fiddling.</p>
+    </div>
+    <div class="code">
+<pre>$ gitty auth login    <span class="c"># add your work account too</span>
+
+$ cd ~/work
+$ gitty use work-account
+
+$ cd ~/personal
+$ gitty use wiremeusd</pre>
+    </div>
+  </div>
+
+  <p>From now on, running <code>gitty</code> anywhere under <code>~/work</code> lists the work account's repositories, and anywhere under <code>~/personal</code> — your personal ones.</p>
+  <p class="dim">gitty clones over HTTPS and registers itself as the <a href="https://git-scm.com/docs/gitcredentials">git credential helper</a> in each cloned repository's local config. When you later run <code>git pull</code> or <code>git push</code> there, git asks gitty, and gitty supplies the token of the account the repo was cloned with. Your global git configuration is never touched.</p>
+</section>
+
+<hr>
+
+<section class="container" id="commands">
+  <h2>📖 Commands</h2>
+  <table>
+    <thead><tr><th>Command</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>gitty</code></td><td class="desc">Interactive repository list: <code>/</code> to search, Enter to clone, Esc to quit</td></tr>
+      <tr><td><code>gitty auth login</code></td><td class="desc">Add an account via GitHub OAuth Device Flow</td></tr>
+      <tr><td><code>gitty auth list</code></td><td class="desc">List added accounts</td></tr>
+      <tr><td><code>gitty auth logout &lt;account&gt;</code></td><td class="desc">Remove an account (token and folder bindings)</td></tr>
+      <tr><td><code>gitty use &lt;account&gt;</code></td><td class="desc">Bind the current directory (and subdirectories) to an account</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<hr>
+
+<section class="container" id="security">
+  <h2>🔒 Security</h2>
+  <ul>
+    <li><strong>OAuth Device Flow</strong> — authentication happens on github.com; you never copy-paste tokens.</li>
+    <li><strong>Keyring storage</strong> — tokens live in the system keyring (macOS Keychain / Linux Secret Service), not in files. The config file (<code>~/.config/gitty/config.toml</code>) contains only account names and folder bindings.</li>
+    <li><strong>Minimal scope</strong> — the token scope is <code>repo</code>, required to list and clone private repositories.</li>
+  </ul>
+</section>
+
+<hr>
+
+<footer class="container">
+  <p><a href="https://github.com/wiremeusd/gitty">github.com/wiremeusd/gitty</a> · MIT License</p>
+</footer>
+
+<script>
+  document.getElementById("copy-install").addEventListener("click", async function () {
+    await navigator.clipboard.writeText(document.getElementById("install-cmd").textContent);
+    this.classList.add("copied");
+    this.lastChild.textContent = " Copied!";
+    setTimeout(() => {
+      this.classList.remove("copied");
+      this.lastChild.textContent = " Copy";
+    }, 1500);
+  });
+</script>
+
+</body>
+</html>
