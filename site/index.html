@@ -3,22 +3,61 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>gitty — Clone GitHub Repos from Your Terminal</title>
-<meta name="description" content="gitty is a macOS CLI: fuzzy-search your GitHub repositories, hit Enter, and they're cloned. Multiple accounts handled automatically.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%232e2a24'/%3E%3Ctext x='8' y='24' font-family='monospace' font-size='22' fill='%23f7c96c'%3E%24%3C/text%3E%3C/svg%3E">
+<title>gitty — Clone GitHub Repos from Your Terminal (macOS & Linux CLI)</title>
+<meta name="description" content="gitty is a free CLI for macOS and Linux: fuzzy-search your GitHub repositories in the terminal, hit Enter, and they're cloned. Multiple GitHub accounts handled automatically — no SSH key juggling.">
+<link rel="canonical" href="https://gitty.pro/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#22272e">
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://gitty.pro/">
+<meta property="og:site_name" content="gitty">
+<meta property="og:title" content="gitty — Clone GitHub Repos from Your Terminal">
+<meta property="og:description" content="Free CLI for macOS and Linux: fuzzy-search your GitHub repos, hit Enter, cloned. Multiple accounts handled automatically.">
+<meta property="og:image" content="https://gitty.pro/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="gitty — interactive GitHub repo cloning from the terminal">
+<meta property="og:locale" content="en_US">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="gitty — Clone GitHub Repos from Your Terminal">
+<meta name="twitter:description" content="Free CLI for macOS and Linux: fuzzy-search your GitHub repos, hit Enter, cloned. Multiple accounts handled automatically.">
+<meta name="twitter:image" content="https://gitty.pro/og.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2322272e'/%3E%3Ctext x='8' y='24' font-family='monospace' font-size='22' fill='%23e9b44c'%3E%24%3C/text%3E%3C/svg%3E">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "gitty",
+  "url": "https://gitty.pro/",
+  "description": "Interactive CLI that clones your GitHub repositories from the terminal via fuzzy search and manages multiple GitHub accounts automatically.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "macOS, Linux",
+  "softwareVersion": "0.2.0",
+  "license": "https://opensource.org/license/mit/",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "downloadUrl": "https://github.com/wiremeusd/gitty/releases/latest",
+  "sameAs": ["https://github.com/wiremeusd/gitty"]
+}
+</script>
 <style>
   :root {
-    --bg: #2e2a24;
-    --bg-code: #23201b;
-    --border: #4a4338;
-    --text: #ffffff;
-    --text-dim: #bdb6a9;
-    --amber: #f7c96c;
-    --amber-dark: #e2a843;
-    --link: #f7c96c;
+    --bg: #22272e;
+    --bg-code: #1b2027;
+    --border: #444c56;
+    --text: #e6edf3;
+    --text-dim: #9aa7b3;
+    --amber: #e9b44c;
+    --amber-dark: #c99738;
+    --link: #e9b44c;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { height: auto; overflow-x: clip; }
 
   body {
     background: var(--bg);
@@ -89,7 +128,7 @@
     margin: 12px 0;
     line-height: 1.7;
   }
-  pre .c { color: #999988; font-style: italic; }
+  pre .c { color: #768390; font-style: italic; }
   pre .out { color: var(--text-dim); }
   pre .hl { color: var(--amber); }
   p > code, li > code, td code {

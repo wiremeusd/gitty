@@ -1,6 +1,6 @@
 # gitty
 
-Clone your GitHub repositories from the terminal — no browsing github.com for clone URLs, no juggling SSH keys between accounts.
+**[gitty.pro](https://gitty.pro)** · Clone your GitHub repositories from the terminal — no browsing github.com for clone URLs, no juggling SSH keys between accounts.
 
 Run `gitty`, fuzzy-search the list of your repositories, hit Enter, and it's cloned into the current directory. Works with multiple GitHub accounts: bind each folder to an account once, and gitty (and `git pull`/`git push` inside the cloned repos) will use the right credentials automatically.
 
