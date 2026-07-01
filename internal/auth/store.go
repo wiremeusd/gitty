@@ -3,6 +3,7 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"os"
 	"runtime"
 
 	"github.com/zalando/go-keyring"
@@ -16,7 +17,15 @@ func SaveToken(account, token string) error {
 	return withLinuxHint(runtime.GOOS, keyring.Set(keyringService, account, token))
 }
 
+// Token returns the GitHub token for account. The GITTY_TOKEN environment
+// variable takes priority over the keyring: on headless servers (no Secret
+// Service daemon) an operator exports a PAT there — via a shell profile or a
+// systemd Environment= line — instead of running `gitty auth login`. It applies
+// to every account, so a single-purpose box needs no keyring at all.
 func Token(account string) (string, error) {
+	if v := os.Getenv("GITTY_TOKEN"); v != "" {
+		return v, nil
+	}
 	token, err := keyring.Get(keyringService, account)
 	return token, withLinuxHint(runtime.GOOS, err)
 }
