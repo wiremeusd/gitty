@@ -46,7 +46,7 @@ func newAuthLoginCmd() *cobra.Command {
 				return err
 			}
 			if err := auth.SaveToken(login, token); err != nil {
-				return fmt.Errorf("failed to save token to the system keyring: %w", err)
+				return fmt.Errorf("could not save token: %w", err)
 			}
 			path, err := config.DefaultPath()
 			if err != nil {
