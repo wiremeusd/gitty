@@ -19,6 +19,8 @@ func newPassStore() *passStore {
 	return &passStore{run: runPass}
 }
 
+var _ backend = (*passStore)(nil)
+
 func (passStore) name() string { return "pass" }
 
 func passEntry(account string) string { return "gitty/" + account }
@@ -47,7 +49,7 @@ func (p *passStore) get(account string) (string, error) {
 func (p *passStore) delete(account string) error {
 	_, err := p.run([]string{"rm", "-f", passEntry(account)}, "")
 	if err != nil && isPassNotFound(err) {
-		return nil // deleting a missing entry is a no-op, matching keyring.Delete semantics
+		return nil // delete is idempotent: removing an entry that is not in the store is not an error.
 	}
 	return err
 }

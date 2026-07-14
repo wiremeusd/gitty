@@ -56,13 +56,14 @@ func resolveBackendFor(goos, override string) (backend, error) {
 var errNoBackend = errors.New(
 	"no usable keyring: gitty needs a running Secret Service (desktop) or an initialised pass store (headless/VPS).\n" +
 		"one-time pass setup: gpg --quick-gen-key \"you@example.com\" && pass init <key-id>\n" +
-		"see: https://gitty.pro (Running on a VPS)")
+		"see: https://github.com/wiremeusd/gitty#running-on-a-vps--headless-server")
 
 // liveSecretService reports whether a Secret Service daemon is answering.
 // A "not found" reply means the daemon is up (it answered the query);
 // any other error means no daemon is reachable.
 func liveSecretService() bool {
 	_, err := keyring.Get(keyringService, secretServiceProbeAccount)
+	// Any error other than ErrNotFound (no daemon, locked/dismissed keyring) counts as unavailable; force with GITTY_KEYRING_BACKEND=secret-service.
 	return err == nil || errors.Is(err, keyring.ErrNotFound)
 }
 

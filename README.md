@@ -59,8 +59,8 @@ pass init you@example.com      # use the key id/email from the line above
 
 Then `gitty auth login` as usual. gitty auto-detects `pass` when no keyring is
 running; `git pull`/`git push` in cloned repos read the token the same way.
-`gpg-agent` asks for your passphrase once per session and caches it, so after the
-first unlock everything runs without prompts — the same feel as the macOS
+`gpg-agent` asks for your passphrase once and caches it (for the gpg-agent TTL),
+so subsequent operations run without prompts — the same feel as the macOS
 Keychain. This assumes you use gitty interactively over SSH.
 
 To force a backend explicitly, set `GITTY_KEYRING_BACKEND` to `secret-service`
