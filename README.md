@@ -34,14 +34,37 @@ sudo install gitty /usr/local/bin/
 
 Tokens are stored in the system keyring: the Keychain on macOS, the Secret Service (GNOME Keyring or KWallet) on Linux.
 
-> **Linux note:** a Secret Service daemon must be running. Desktop environments (GNOME, KDE) have one out of the box; on headless systems install and unlock `gnome-keyring` first — or skip the keyring entirely with `GITTY_TOKEN` (see below).
+> **Linux note:** on a desktop (GNOME, KDE) tokens go into the Secret Service keyring out of the box.
 
-> **Headless / servers:** instead of running `gitty auth login`, export a GitHub [personal access token](https://github.com/settings/tokens) (scope `repo`) as `GITTY_TOKEN`. It takes priority over the keyring for every account, so no Secret Service daemon is needed — ideal for CI, containers, and remote boxes:
->
-> ```sh
-> export GITTY_TOKEN=ghp_xxx   # shell profile, or a systemd Environment= line
-> gitty                        # browse & clone; git push/pull work via the credential helper
-> ```
+### Running on a VPS / headless server
+
+Headless machines have no Secret Service keyring. There are two ways to run gitty there:
+
+**1. `GITTY_TOKEN` — quickest, for CI, containers, and ephemeral boxes.** Instead of running `gitty auth login`, export a GitHub [personal access token](https://github.com/settings/tokens) (scope `repo`) as `GITTY_TOKEN`. It takes priority over the keyring for every account, so no daemon is needed:
+
+```sh
+export GITTY_TOKEN=ghp_xxx   # shell profile, or a systemd Environment= line
+gitty                        # browse & clone; git push/pull work via the credential helper
+```
+
+**2. `pass` — encrypted at rest, for a server you log into interactively.** gitty stores the token in a
+[`pass`](https://www.passwordstore.org/) store instead — encrypted at rest with
+GPG. One-time setup:
+
+```sh
+sudo apt install pass          # or: dnf install pass, apk add pass, ...
+gpg --quick-gen-key "you@example.com"
+pass init you@example.com      # use the key id/email from the line above
+```
+
+Then `gitty auth login` as usual. gitty auto-detects `pass` when no keyring is
+running; `git pull`/`git push` in cloned repos read the token the same way.
+`gpg-agent` asks for your passphrase once per session and caches it, so after the
+first unlock everything runs without prompts — the same feel as the macOS
+Keychain. This assumes you use gitty interactively over SSH.
+
+To force a backend explicitly, set `GITTY_KEYRING_BACKEND` to `secret-service`
+or `pass` (default: `auto`).
 
 ## Quick start
 
