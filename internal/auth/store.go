@@ -13,9 +13,8 @@ const keyringService = "gitty"
 // Every backend maps its own "missing" outcome to this sentinel.
 var ErrNotFound = keyring.ErrNotFound
 
-// backend is a token storage backend. secretService is the only
-// implementation today; later tasks add more and a resolver that picks
-// between them.
+// backend is a token storage backend. resolveBackend picks the right one
+// for the current OS and GITTY_KEYRING_BACKEND override.
 type backend interface {
 	set(account, token string) error
 	get(account string) (string, error)
@@ -24,7 +23,11 @@ type backend interface {
 }
 
 func SaveToken(account, token string) error {
-	return secretService{}.set(account, token)
+	b, err := resolveBackend()
+	if err != nil {
+		return err
+	}
+	return b.set(account, token)
 }
 
 // Token returns the GitHub token for account. The GITTY_TOKEN environment
@@ -36,9 +39,17 @@ func Token(account string) (string, error) {
 	if v := os.Getenv("GITTY_TOKEN"); v != "" {
 		return v, nil
 	}
-	return secretService{}.get(account)
+	b, err := resolveBackend()
+	if err != nil {
+		return "", err
+	}
+	return b.get(account)
 }
 
 func DeleteToken(account string) error {
-	return secretService{}.delete(account)
+	b, err := resolveBackend()
+	if err != nil {
+		return err
+	}
+	return b.delete(account)
 }
