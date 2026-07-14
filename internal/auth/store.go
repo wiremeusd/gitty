@@ -1,20 +1,30 @@
 package auth
 
 import (
-	"errors"
-	"fmt"
 	"os"
-	"runtime"
 
 	"github.com/zalando/go-keyring"
 )
 
-// Tokens are stored in the system keyring (macOS Keychain / Linux Secret Service):
-// service=gitty, account=GitHub account name.
+// Tokens are stored under service=gitty, account=GitHub account name.
 const keyringService = "gitty"
 
+// ErrNotFound is returned by Token when no token exists for the account.
+// Every backend maps its own "missing" outcome to this sentinel.
+var ErrNotFound = keyring.ErrNotFound
+
+// backend is a token storage backend. secretService is the only
+// implementation today; later tasks add more and a resolver that picks
+// between them.
+type backend interface {
+	set(account, token string) error
+	get(account string) (string, error)
+	delete(account string) error
+	name() string
+}
+
 func SaveToken(account, token string) error {
-	return withLinuxHint(runtime.GOOS, keyring.Set(keyringService, account, token))
+	return secretService{}.set(account, token)
 }
 
 // Token returns the GitHub token for account. The GITTY_TOKEN environment
@@ -26,20 +36,9 @@ func Token(account string) (string, error) {
 	if v := os.Getenv("GITTY_TOKEN"); v != "" {
 		return v, nil
 	}
-	token, err := keyring.Get(keyringService, account)
-	return token, withLinuxHint(runtime.GOOS, err)
+	return secretService{}.get(account)
 }
 
 func DeleteToken(account string) error {
-	return withLinuxHint(runtime.GOOS, keyring.Delete(keyringService, account))
-}
-
-// On Linux the keyring is the D-Bus Secret Service; when no daemon is running
-// (headless server, WSL, minimal WM) go-keyring's raw D-Bus error is cryptic,
-// so point the user at the fix. "Not found" is a normal outcome, not a setup issue.
-func withLinuxHint(goos string, err error) error {
-	if err == nil || errors.Is(err, keyring.ErrNotFound) || goos != "linux" {
-		return err
-	}
-	return fmt.Errorf("%w\nhint: gitty stores tokens in the Secret Service keyring; make sure a keyring daemon is running (GNOME Keyring or KWallet) — on headless systems install and unlock gnome-keyring first", err)
+	return secretService{}.delete(account)
 }
