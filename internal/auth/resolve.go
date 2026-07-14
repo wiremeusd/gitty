@@ -15,7 +15,15 @@ import (
 var (
 	probeSecretService = liveSecretService
 	passInitialized    = livePassInitialized
+	lookPath           = exec.LookPath
 )
+
+// secretServiceProbeAccount is a nonexistent account name used solely to
+// probe whether a Secret Service daemon is answering. It must not contain a
+// NUL byte: the D-Bus string encoder rejects NUL bytes with a marshal error
+// rather than returning ErrNotFound, which would make a live daemon look
+// dead.
+const secretServiceProbeAccount = "gitty-secretservice-probe"
 
 func resolveBackend() (backend, error) {
 	return resolveBackendFor(runtime.GOOS, os.Getenv("GITTY_KEYRING_BACKEND"))
@@ -54,14 +62,14 @@ var errNoBackend = errors.New(
 // A "not found" reply means the daemon is up (it answered the query);
 // any other error means no daemon is reachable.
 func liveSecretService() bool {
-	_, err := keyring.Get(keyringService, "gitty-secretservice-probe\x00")
+	_, err := keyring.Get(keyringService, secretServiceProbeAccount)
 	return err == nil || errors.Is(err, keyring.ErrNotFound)
 }
 
 // livePassInitialized reports whether the pass binary exists and its store
 // has been initialised (a .gpg-id file is present).
 func livePassInitialized() bool {
-	if _, err := exec.LookPath("pass"); err != nil {
+	if _, err := lookPath("pass"); err != nil {
 		return false
 	}
 	store := os.Getenv("PASSWORD_STORE_DIR")
